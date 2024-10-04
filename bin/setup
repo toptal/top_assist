@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+self="${BASH_SOURCE[0]}"
+
+bin_dir="$(cd "$(dirname "$self")" && pwd)"
+app_dir="$(dirname "$bin_dir")"
+
+. $bin_dir/common/functions.sh
+
+set -E
+
+usage() {
+  echo "Usage: $0 [--opts]"
+  echo
+  echo "Options:"
+  echo "--volumes-prune, -V                 Clear all the volumes before starting"
+  echo "--tmp-prune, -T                     Prune tmp contents"
+  echo "--prune                             Equivalent to  --volumes-prune --tmp-prune"
+  echo "--help, -h                          Print this message and exit"
+  echo "--manual-testing, -m                Prepare to run manual tests"
+  echo "--metrics, -m                       Prepare to run manual tests with metrics"
+}
+
+
+while [ "$1" != "" ]; do
+  opt="$(echo "$1" | awk -F= '{print $1}')"
+  value="$(echo "$1" | awk -F= '{print $2}')"
+  case $opt in
+    --volumes-prune | -V) volumes_prune=1;;
+    --tmp-prune | -T) tmp_prune=1;;
+    --manual-testing | -m) manual_testing=1;;
+    --metrics) metrics=1;;
+    --prune) volumes_prune=1;tmp_prune=1;;
+    --help | -h) usage; exit;;
+    *)
+      echo "Unsupported option '$opt'"
+      usage
+      exit 1;;
+  esac
+  shift
+done
+
+if [ -n "$volumes_prune" ]; then
+  info "Removing docker volumes"
+  docker compose down -v
+fi
+
+
+if [ -n "$volumes_prune" ]; then
+  info "Removing tmp/ files"
+  rm -rf tmp/
+fi
+
+doctor
+setup_prometheus_multiproc_dir
+
+info "Starting docker compose services"
+
+docker compose up -d
+
+info "Installing Dependencies"
+poetry install
+
+info "Creating Database"
+setup_pg_database "${DB_NAME}"
+if [ "$ENV" = "development" ]; then
+  setup_pg_database "${DB_NAME}_test"
+fi
+
+info "Running Migrations"
+. $bin_dir/migrate
+
+if [ -n "$metrics" ]; then
+  info "Starting TopAssist processes with metrics"
+  docker compose --profile dev_metrics up -d --build
+fi
+
+if [ -n "$manual_testing" ]; then
+  info "Starting TopAssist processes for manual testing"
+  poetry run honcho -f Procfile.manual start
+fi

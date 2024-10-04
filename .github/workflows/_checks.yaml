@@ -1,0 +1,122 @@
+name: Checks
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Branch or SHA to run checks'
+        type: string
+        required: true
+
+jobs:
+  linters_and_tests:
+    name: Linters and Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Setup envs
+        run: |
+          echo "GITHUB_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+          cat .env.example | grep -Ev '^#' >> $GITHUB_ENV
+          echo "ENV=test" >> $GITHUB_ENV
+          echo "VECTOR_COLLECTIONS_PREFIX=TopAssist_test" >> $GITHUB_ENV
+          echo "DB_NAME=top_assist_test" >> $GITHUB_ENV
+          echo "TOP_ASSIST_ADMIN_EXTRA_LINKS=[]" >> $GITHUB_ENV
+
+      - name: Print envs
+        run: |
+          echo $context | jq --color-output .
+        env:
+          context: ${{ toJSON(env) }}
+
+      - name: Install Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.2"
+
+      - name: Install poetry
+        uses: abatilo/actions-poetry@v2
+        with:
+          poetry-version: "1.8.2"
+
+      - name: Define Poetry Cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            poetry-
+
+      - name: Define Virtual Environment Cache
+        uses: actions/cache@v3
+        with:
+          path: ./.venv
+          key: venv-${{ hashFiles('poetry.lock') }}
+
+      - name: Setup a local virtual environment
+        run: |
+          poetry config virtualenvs.create true --local
+          poetry config virtualenvs.in-project true --local
+
+      - name: Install the project dependencies
+        run: poetry install
+
+      - name: Lint
+        run: poetry run ruff check
+
+      - name: Check formatting
+        run: poetry run ruff format --diff
+
+      - name: Run typechecker
+        run: |
+          poetry run mypy -p top_assist
+          poetry run mypy -p tests
+
+      - name: Run unit tests
+        run: bin/pytest --cov-fail-under=0 --cov=top_assist/ tests/unit/
+
+      - name: Build Docker images
+        run: docker compose build
+
+      - name: Setup Integrated tests dependencies
+        run: |
+          docker compose up --wait
+          bin/migrate
+
+      - name: Run integration tests
+        run: bin/pytest --cov-fail-under=0 --cov=top_assist/ tests/integrated/
+
+      - name: Show Docker compose Logs
+        if: ${{ failure() }}
+        run: docker compose logs
+
+  bearer:
+    name: Bearer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    if: github.ref_name != github.event.repository.default_branch
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run bearer
+        id: bearer-check
+        uses: bearer/bearer-action@v2
+        with:
+          quiet: true
+          bearer-ignore-file: bearer.ignore
+          output: bearer_security_report.json
+          format: json
+      - name: Post to summary
+        if: failure() && steps.bearer-check.outputs.exit_code != 0
+        run: |
+          echo "bearer-check detected some rules breaches in your PR." >> $GITHUB_STEP_SUMMARY
+          echo "Please run bearer locally and either fix those breaches or ignore them if needed." >> $GITHUB_STEP_SUMMARY
+          echo "Run **bin/install_bearer** locally to install the binary and run bearer with **bin/bearer scan . --quiet**" >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="col-4">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Spaces management</h3>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <form action="/admin/update_spaces" method="post" onsubmit="return confirm('We will start the update in background job.\nYou will be redirected to Spaces page');">
+        <div class="mb-3">
+          <span class="form-label">Update pages for all spaces changed since last update</span>
+          {% if old_space_name %}
+            <em>
+              <span>Oldest space: {{ old_space_name }} ({{ old_space_key }}) from {{ old_space_last_import_date }}</span>
+            </em>
+          {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </form>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <label class="form-label">Delete spaces</label>
+      <em>Spaces will be deleted with all pages and embedded content</em>
+      <br><br>
+      <a href="/admin/spaces/list" class="btn btn-primary">Go to spaces list</a>
+    </div>
+
+  </div>
+</div>
+
+<div class="col-4">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Stats</h3>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+
+          <tr>
+            <th style="width: 350px;">Spaces</th>
+            <td>{{ space_count }}</td>
+          </tr>
+
+          <tr>
+            <th>Pages</th>
+            <td>{{ pages_count }}</td>
+          </tr>
+
+          <tr>
+            <th>Users</th>
+            <td>{{ users_count }}</td>
+          </tr>
+
+          <tr>
+            <th>Pages in vector DB</th>
+            <td>{{ pages_in_vector_db }}</td>
+          </tr>
+
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="col-4">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Channels management</h3>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <form action="/admin/update_channels" method="post" onsubmit="return confirm('We will start the update in background job.\nYou will be redirected to Channels page');">
+        <div class="mb-3">
+          <span class="form-label">Update channels that has the Top Assist Bot as a member</span>
+        </div>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </form>
+    </div>
+    <div class="card-body border-bottom py-3">
+      <div class="mb-3">
+        <label class="form-label">Leave Channels</label>
+      </div>
+      <a href="/admin/channels/list" class="btn btn-primary">Go to channels list</a>
+    </div>
+
+  </div>
+</div>
+
+{% if spaces_available_for_import %}
+{% include "spaces_to_import.html" %}
+{% endif %}
+
+{% endblock %}

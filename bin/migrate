@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+
+bin_dir=$(dirname -- "${BASH_SOURCE[0]}" )
+app_dir=$( cd -- "$bin_dir/.." &> /dev/null && pwd )
+
+. $bin_dir/common/functions.sh
+
+set -e
+
+cd $app_dir
+
+VIRTUAL_ENV=$app_dir/.venv PATH=$app_dir/.venv/bin:$PATH alembic upgrade head
+
+if [ "$ENV" = "development" ]; then
+  DB_NAME="${DB_NAME}_test" VIRTUAL_ENV=$app_dir/.venv PATH=$app_dir/.venv/bin:$PATH alembic upgrade head
+fi

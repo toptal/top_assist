@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d top_assist "$@"

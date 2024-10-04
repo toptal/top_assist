@@ -1,0 +1,189 @@
+[tool.poetry]
+name = "top-assist"
+version = "0.2.0"
+description = "self healing documentation"
+authors = ["Dev X"]
+license = "Apache"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^1.12.0"
+fastapi = "^0.109.2"
+atlassian-python-api = "^3.41.10"
+beautifulsoup4 = "^4.12.3"
+uvicorn = "^0.30.1"
+slack-sdk = "^3.27.0"
+psycopg2 = "^2.9.9"
+alembic = "^1.13.1"
+sqlalchemy = "^2.0.29"
+pydantic = "^2.7.0"
+argparse = "^1.4.0"
+weaviate-client = "^4.5.5"
+qdrant-client = "^1.9.1"
+ddtrace = "^2.8.1"
+prometheus-client = "^0.20.0"
+prometheus-fastapi-instrumentator = "^7.0.0"
+sentry-sdk = "^2.14.0"
+backoff = "^2.2.1"
+starlette-admin = "^0.13.2"
+cryptography = "^43.0.1"
+itsdangerous = "^2.2.0"
+email-validator = "^2.2.0"
+langchain = "^0.2.14"
+langgraph = "^0.2.14"
+langchain-openai = "^0.1.22"
+langchain-community = "^0.2.15"
+duckduckgo-search = "^6.2.11"
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.4"
+pytest = "^8.1.1"
+pytest-cov = "^5.0.0"
+pytest-bdd = "^7.1.2"
+jupyter = "^1.0.0"
+mypy = "^1.10.0"
+ruff = "^0.4.1"
+types-pyyaml = "^6.0.12.20240311"
+types-beautifulsoup4 = "^4.12.0.20240229"
+types-requests = "^2.31.0.20240406"
+mock = "^5.1.0"
+bpython = "^0.24"
+pystache = "^0.6.5"
+freezegun = "^1.5.1"
+pook = "^1.4.3"
+asyncio = "^3.4.3"
+websockets = "^12.0"
+honcho = "^1.1.0"
+langsmith = "^0.1.107"
+pydocstyle = "^6.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+fix = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint]
+# Rules catalog: https://docs.astral.sh/ruff/rules/
+select = [
+    "YTT",  # flake8-2020
+    "ASYNC",# flake8-async
+    "ANN",  # flake8-annotations
+    "S",    # flake8-bandit
+    "BLE",  # flake8-blind-except
+    "FBT",  # flake8-boolean-trap
+    "B",    # flake8-bugbear
+    "A",    # flake8-builtins
+    "COM",  # flake8-commas
+    "C4",   # flake8-comprehensions
+    "DTZ",  # flake8-datetimez
+    "T10",  # flake8-debugger
+    "ICN",  # flake8-import-conventions
+    "LOG",  # flake8-logging
+    "G",    # flake8-logging-format
+    "INP",  # flake8-no-pep420
+    "PIE",  # flake8-pie
+    "PT",   # flake8-pytest-style
+    "Q",    # flake8-quotes
+    "RSE",  # flake8-raise
+    "RET",  # flake8-return
+    "T20",  # flake8-print
+    "SLF",  # flake8-self
+    "SLOT", # flake8-slots
+    "SIM",  # flake8-simplify
+    "TID",  # flake8-tidy-imports
+    "TRIO", # flake8-trio
+    "TCH",  # flake8-type-checking
+    "INT",  # flake8-gettext
+    "ARG",  # flake8-unused-arguments
+    "PTH",  # flake8-use-pathlib
+    "TD",   # flake8-todos
+    "FIX",  # flake8-fixme
+    "FLY",  # flynt
+    "I",    # isort
+    "C90",  # mccabe
+    "N",    # pep8-naming
+    "PERF", # perflint
+    "E",    # pycodestyle
+    "W",    # pycodestyle
+    "F",    # pyflakes
+    "PGH",  # pygrep-hooks
+    "PLC",  # pylint convention
+    "PLE",  # pylint error
+    "PLR",  # pylint refactor
+    "PLW",  # pylint warning
+    "UP",   # pyupgrade
+    "RUF",  # ruff
+    "TRY",  # tryceratops
+    "D",    # flake8-docstrings
+]
+ignore = [
+    "E501",     # LineTooLong
+    "E731",     # DoNotAssignLambda
+    "RET504",   # unnecessary-assign
+    "RET505",   # superfluous-else-return
+    "BLE001",   # blind-except
+    "COM812",   # missing-trailing-comma (conflicts with formatter)
+    "TRY300",   # try-consider-else
+    "ANN101",   # missing-type-self
+    "ANN102",   # missing-type-cls
+    "ANN204",   # missing-return-type-special-method (TODO)
+    "TD002",    # missing-todo-author
+    "FIX002",   # line-contains-todo
+    "D100",     # Missing docstring in public module
+    "D102",     # Missing docstring in public method
+    "D103",     # Missing docstring in public function
+    "D104",     # Missing docstring in public package
+    "D107",     # Missing docstring in __init__
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = [
+    "INP001",   # implicit-namespace-package
+    "S101",     # assert
+    "PLR0913",  # too-many-arguments
+    "PLR2004",  # magic-value-comparison
+    "S106",     # hardcoded-password-func-arg
+    "S105",     # hardcoded-password-string
+    "D",        # docstring
+]
+"alembic/*" = [
+    "INP001",    # implicit-namespace-package
+    "D"          # docstring
+]
+"top_assist/cli/*" = [
+    "T20",      # flake8-print
+]
+"top_assist/tui/*" = [
+    "T20",      # flake8-print
+]
+
+[tool.ruff.format]
+preview = true
+
+[[tool.mypy.overrides]]
+module = [
+    'atlassian',
+    'plotly',
+    'plotly.graph_objects',
+    'pook',
+    'umap',
+    'weaviate',
+    'weaviate.classes',
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "tests/unit",
+    "tests/integrated",
+    "tests/functional",
+]

@@ -1,0 +1,79 @@
+<div class="col-6">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Spaces available for import: {{ spaces_available_for_import|length }}</h3>
+    </div>
+    <div class="card-body">
+      <form action="/admin/import_spaces" method="post">
+          <button id="importButton" type="submit" class="btn btn-primary" style="display: none;">Import Selected</button>
+        <br>
+        <table class="table table-striped">
+          <thead>
+          <tr>
+            <th>
+              <label>
+                <input type="checkbox" id="selectAllCheckbox">
+              </label>
+            </th>
+            <th>Key</th>
+            <th>Name</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for space in spaces_available_for_import %}
+          <tr>
+            <td>
+              <label>
+                <input type="checkbox" name="selected_spaces" value="{{ space.key }}__{{ space.name }}">
+              </label>
+            </td>
+            <td>{{ space.key }}</td>
+            <td>{{ space.name }}</td>
+            <td>
+              <form action="/admin/import_space/{{ space.key }}/{{ space.name }}" method="post">
+                <button type="submit" class="btn btn-primary">Import</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  var checkboxes = document.getElementsByName('selected_spaces');
+  var importButton = document.getElementById('importButton');
+  var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+
+  function checkIfAnyCheckboxChecked() {
+    var anyCheckboxChecked = false;
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) {
+        anyCheckboxChecked = true;
+        break;
+      }
+    }
+    if (anyCheckboxChecked || selectAllCheckbox.checked) {
+      importButton.style.display = 'block';
+    } else {
+      importButton.style.display = 'none';
+    }
+  }
+
+  for (var i = 0; i < checkboxes.length; i++) {
+    checkboxes[i].addEventListener('change', checkIfAnyCheckboxChecked);
+    selectAllCheckbox.addEventListener('change', function() {
+      for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = selectAllCheckbox.checked;
+      }
+      checkIfAnyCheckboxChecked();
+    });
+  }
+
+  checkIfAnyCheckboxChecked();
+</script>

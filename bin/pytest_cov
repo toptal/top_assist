@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+bin_dir=$(dirname -- "${BASH_SOURCE[0]}" )
+app_dir=$( cd -- "$bin_dir/.." &> /dev/null && pwd )
+
+. $bin_dir/common/functions.sh
+
+cd $app_dir
+
+setup_prometheus_multiproc_dir
+
+args="${@:-tests/unit/}"
+
+poetry run pytest --cov --cov-report html:tmp/cov_html $args && echo "See file://$PWD/tmp/cov_html/index.html"

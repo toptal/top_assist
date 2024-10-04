@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+poetry run ruff check && poetry run ruff format && poetry run mypy -p top_assist && poetry run mypy -p tests

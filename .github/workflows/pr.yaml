@@ -1,0 +1,24 @@
+name: PR
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch or SHA to run checks'
+        required: true
+        default: 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  run_checks:
+    name: Check
+    secrets: inherit
+    uses: ./.github/workflows/_checks.yaml
+    with:
+      ref: ${{ github.event.inputs.ref || github.sha }}
+

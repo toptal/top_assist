@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Check if Poetry is installed by checking the command's existence
+if ! command -v poetry &> /dev/null; then
+    echo "Poetry could not be found. Please install Poetry and then rerun this script."
+    exit 1
+else
+    echo "Poetry is already installed."
+fi
+
+# Install the poetry-dotenv-plugin
+# Note: This step assumes that Poetry is installed and configured correctly.
+echo "Installing poetry-dotenv-plugin..."
+poetry self add poetry-dotenv-plugin
+
+# Check if the plugin installation was successful
+if [ $? -ne 0 ]; then
+    echo "Failed to install poetry-dotenv-plugin. Please check the plugin documentation for troubleshooting."
+    exit 1
+else
+    echo "poetry-dotenv-plugin installed successfully."
+fi

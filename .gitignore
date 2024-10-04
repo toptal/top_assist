@@ -1,0 +1,9 @@
+/.idea/
+/.env
+/.vscode/
+/tmp/
+__pycache__
+.coverage
+.DS_Store
+*.ipynb
+/bin/bearer

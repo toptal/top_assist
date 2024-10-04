@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Top Assist - Authentication Status</title>
+    <style>
+      body {
+        font-family: Proxima Nova, Arial, "sans-serif";
+        font-weight: 400;
+        height: 100%;
+        background: #0f256e;
+        color: #fff;
+        text-align: center;
+        align-items: center;
+        margin: 0;
+      }
+
+      .msg-header {
+        font-size: 28px;
+        font-weight: 600;
+        line-height: 36px;
+        margin-bottom: 16px;
+        width: 100%;
+      }
+
+      .msg-wrapper {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -ms-flex-align: center;
+        align-items: center;
+        background: url(/static/illustration.png) no-repeat center 80px;
+        background-size: contain;
+        height: 100vh;
+      }
+
+      .msg-content {
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="msg-wrapper">
+      <div class="msg-content">
+        <h1 class="msg-header">{{ message_one }}</h1>
+        <p>{{ message_two }}</p>
+      </div>
+    </div>
+  </body>
+</html>

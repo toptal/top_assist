@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+IFS=$'\n\t'
+
+if ! (command -v bin/bearer 1>/dev/null); then
+  echo "Bearer is not installed at bin/bearer"
+  echo "Please enter 'yes' if you would like bearer to be automatically installed for you via the bearer install script:"
+  read should_install_bearer
+
+  if [ "$should_install_bearer" == "yes" ]; then
+    curl -fL https://raw.githubusercontent.com/Bearer/bearer/main/contrib/install.sh | sh
+    echo "bearer is now installed to bin/bearer. You can now run bearer using the bin/bearer command"
+    exit 0
+  fi
+
+  echo "Please visit https://docs.bearer.com/reference/installation/ for instruction on how to manually install bearer"
+  exit 1
+fi

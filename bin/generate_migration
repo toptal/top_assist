@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -e
+
+DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )
+cd $DIR
+
+VIRTUAL_ENV=$DIR/.venv PATH=$DIR/.venv/bin:$PATH alembic revision --autogenerate -m "$1"

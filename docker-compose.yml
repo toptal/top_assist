@@ -1,0 +1,199 @@
+x-dev-env: &dev-env
+  TOP_ASSIST_API_HOST: 0.0.0.0
+  TOP_ASSIST_API_PORT: 8080
+  TOP_ASSIST_METRICS_PORT: 9090
+  PROMETHEUS_MULTIPROC_DIR: $PROMETHEUS_MULTIPROC_DIR
+  # TOP_ASSIST_LOGS_FILE:
+  TOP_ASSIST_LOGS_FORMAT: jsonl
+  TOP_ASSIST_LOGS_LEVEL: INFO
+  CONFLUENCE_BASE_URL: $CONFLUENCE_BASE_URL
+  CONFLUENCE_USER: $CONFLUENCE_USER
+  CONFLUENCE_API_TOKEN: $CONFLUENCE_API_TOKEN
+  CONFLUENCE_CLOUD_ID: $CONFLUENCE_CLOUD_ID
+  CONFLUENCE_OAUTH_AUTHORIZATION_URL_TEMPLATE: $CONFLUENCE_OAUTH_AUTHORIZATION_URL_TEMPLATE
+  CONFLUENCE_OAUTH_TOP_ASSIST_REDIRECT_URL_TEMPLATE: $CONFLUENCE_OAUTH_TOP_ASSIST_REDIRECT_URL_TEMPLATE
+  CONFLUENCE_OAUTH_CLIENT_ID: $CONFLUENCE_OAUTH_CLIENT_ID
+  CONFLUENCE_OAUTH_CLIENT_SECRET: $CONFLUENCE_OAUTH_CLIENT_SECRET
+  CONFLUENCE_OAUTH_REDIRECT_URI: $CONFLUENCE_OAUTH_REDIRECT_URI
+  CONFLUENCE_STATS_PAGE_TITLE: $CONFLUENCE_STATS_PAGE_TITLE
+  CONFLUENCE_STATS_PAGE_ID: $CONFLUENCE_STATS_PAGE_ID
+  CRYPTOGRAPHY_SECRET_KEY: $CRYPTOGRAPHY_SECRET_KEY
+  OPENAI_API_KEY: $OPENAI_API_KEY
+  OPENAI_ASSISTANT_ID_QA: $OPENAI_ASSISTANT_ID_QA
+  OPENAI_ASSISTANT_ID_BASE: $OPENAI_ASSISTANT_ID_BASE
+  PAGES_CERTAINTY_THRESHOLD: $PAGES_CERTAINTY_THRESHOLD
+  SLACK_APP_TOKEN: $SLACK_APP_TOKEN
+  SLACK_BOT_TOKEN: $SLACK_BOT_TOKEN
+  SLACK_ALLOW_ENTERPRISE_ID: $SLACK_ALLOW_ENTERPRISE_ID
+  SLACK_ALLOW_TEAM_ID: $SLACK_ALLOW_TEAM_ID
+  TOP_ASSIST_ADMIN_USER: $TOP_ASSIST_ADMIN_USER
+  TOP_ASSIST_ADMIN_PASSWORD: $TOP_ASSIST_ADMIN_PASSWORD
+  TOP_ASSIST_ADMIN_SESSION_SECRET_KEY: $TOP_ASSIST_ADMIN_SESSION_SECRET_KEY
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_HOST: db
+  DB_PORT: 5432
+  DB_NAME: top_assist
+  VECTOR_COLLECTIONS_PREFIX: TopAssist
+  # Uncomment to switch to qdrant
+  # QDRANT_URL: http://qdrant:6333
+  WEAVIATE_API_KEY:
+  WEAVIATE_HTTP_HOST: weaviate
+  WEAVIATE_HTTP_PORT: 8000
+  WEAVIATE_GRPC_HOST: weaviate
+  WEAVIATE_GRPC_PORT: 50051
+  WEAVIATE_SECURE: false
+  DD_ENV:
+  DD_SERVICE: $DD_SERVICE
+  DD_SERVICE_MAPPING: $DD_SERVICE_MAPPING
+  DD_OPENAI_SERVICE: $DD_OPENAI_SERVICE
+  DD_TRACE_ENABLED: $DD_TRACE_ENABLED
+  DD_LOGS_INJECTION: $DD_LOGS_INJECTION
+  DD_AGENT_HOST:
+  DD_AGENT_PORT: 8126
+  DIFY_API_ENDPOINT: $DIFY_API_ENDPOINT
+  DIFY_PROMPT_OPTIMIZER_API_KEY: $DIFY_PROMPT_OPTIMIZER_API_KEY
+
+services:
+  dev_chat_bot:
+    profiles: [dev_chat_bot, dev_metrics]
+    build:
+      context: .
+      dockerfile: builder/Dockerfile
+      target: production
+    command: ["bin/chat_bot"]
+    depends_on:
+      - db
+      - qdrant
+      - weaviate
+    environment:
+      <<: *dev-env
+
+  dev_web:
+    profiles: [dev_web, dev_metrics]
+    build:
+      context: .
+      dockerfile: builder/Dockerfile
+      target: production
+    command: ["bin/web"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - qdrant
+      - weaviate
+    environment:
+      <<: *dev-env
+
+  dev_menu:
+    profiles: [dev_menu, dev_metrics]
+    build:
+      context: .
+      dockerfile: builder/Dockerfile
+      target: production
+    command: ["bin/menu"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      - db
+      - qdrant
+      - weaviate
+    environment:
+      <<: *dev-env
+
+  prometheus:
+    image: prom/prometheus
+    profiles: [dev_metrics]
+    user: "$UID:$GID"
+    container_name: prometheus
+    hostname: prometheus
+    restart: unless-stopped
+    volumes:
+      - ./docker/prometheus/config:/etc/prometheus
+      - ./tmp/docker/prometheus/data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - 9090
+
+  grafana:
+    image: grafana/grafana
+    profiles: [dev_metrics]
+    container_name: grafana
+    hostname: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    restart: unless-stopped
+    volumes:
+      - ./tmp/docker/grafana/data:/var/lib/grafana
+      - ./docker/grafana/import_dashboards/:/var/lib/import_dashboards
+      - ./docker/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+      - ./docker/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    user: "$UID:$GID"
+    ports:
+      - 9000:3000
+
+  dev_runner:
+    profiles: [dev_runner]
+    build:
+      context: .
+      dockerfile: builder/Dockerfile
+      target: production
+    command: ["tail", "-f", "/dev/null"]
+    depends_on:
+      - db
+      - qdrant
+      - weaviate
+    environment:
+      <<: *dev-env
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ${DB_NAME:-top_assist}
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${DB_NAME:-top_assist}"]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+      start_period: 5s
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/.qdrant/index
+
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.24.7
+    command: ["--host", "0.0.0.0", "--port", "8000", "--scheme", "http"]
+    ports:
+      - "8000:8000"
+      - "50051:50051"
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      BACKUP_FILESYSTEM_PATH: "/tmp/backups"
+      DEFAULT_VECTORIZER_MODULE: "none"
+      ENABLE_MODULES: "backup-filesystem"
+      CLUSTER_HOSTNAME: "node1"
+      PROMETHEUS_MONITORING_ENABLED: true
+      PROMETHEUS_MONITORING_PORT: 9090
+
+volumes:
+  postgres-data:
+  weaviate-data:
+  qdrant-data:

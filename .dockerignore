@@ -1,0 +1,13 @@
+**
+!alembic/
+!bin/
+!tests/
+!top_assist/
+!alembic.ini
+!poetry.lock
+!poetry.toml
+!pyproject.toml
+__pycache__
+.coverage
+.DS_Store
+/bin/bearer

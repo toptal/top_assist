@@ -1,0 +1,2 @@
+web: bin/web
+chat_bot: bin/chat_bot

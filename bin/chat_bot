@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+bin_dir=$(dirname -- "${BASH_SOURCE[0]}" )
+app_dir=$( cd -- "$bin_dir/.." &> /dev/null && pwd )
+
+. $bin_dir/common/functions.sh
+
+set -e
+
+cd $app_dir
+
+setup_prometheus_multiproc_dir
+
+./bin/migrate
+VIRTUAL_ENV=$app_dir/.venv PATH=$app_dir/.venv/bin:$PATH exec python -m top_assist.chat_bot $@

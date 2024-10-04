@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+bin_dir=$(dirname -- "${BASH_SOURCE[0]}" )
+app_dir=$( cd -- "$bin_dir/.." &> /dev/null && pwd )
+
+. $bin_dir/common/functions.sh
+
+cd $app_dir
+
+setup_prometheus_multiproc_dir
+
+args="${@:-tests/unit/}"
+
+poetry run pytest $args

@@ -1,4 +1,5 @@
 name: Security Scan
+
 on:
   pull_request:
 jobs:

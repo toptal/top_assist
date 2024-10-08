@@ -42,9 +42,8 @@ jobs:
           python-version: "3.12.2"
 
       - name: Install poetry
-        uses: abatilo/actions-poetry@v2
-        with:
-          poetry-version: "1.8.2"
+        run: |
+          pip install poetry==1.8.2
 
       - name: Define Poetry Cache
         uses: actions/cache@v3
